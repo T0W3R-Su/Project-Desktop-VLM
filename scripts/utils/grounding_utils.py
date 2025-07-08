@@ -12,6 +12,7 @@ Qwen-2.5-VL 官方 Cookbook spatial_understanding.ipynb 重写而来
 import json
 import ast
 import io
+import os
 import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 
@@ -53,43 +54,6 @@ def parse_json_from_string(text: str) -> str:
             
     # 如果没有找到 "```json" 标记，则假定整个文本就是JSON内容
     return text
-
-def decode_xml_points(xml_text: str) -> dict | None:
-    """
-    解析XML格式的文本，提取其中的坐标点、替代文本(alt)和描述短语。
-
-    Args:
-        xml_text (str): 待解析的XML字符串。
-
-    Returns:
-        dict | None: 包含'points', 'alt', 'phrase'的字典，如果解析失败则返回None。
-    """
-    try:
-        # 从字符串解析XML
-        root = ET.fromstring(xml_text)
-        # 根据属性数量推断点的个数（假设属性总是成对的x,y，外加一个alt属性）
-        num_points = (len(root.attrib) - 1) // 2
-        points = []
-        for i in range(num_points):
-            # 动态获取 x{i+1} 和 y{i+1} 属性
-            x = root.attrib.get(f'x{i+1}')
-            y = root.attrib.get(f'y{i+1}')
-            if x is not None and y is not None:
-                points.append([x, y])
-        
-        # 获取 'alt' 属性和标签内的文本
-        alt = root.attrib.get('alt')
-        phrase = root.text.strip() if root.text else None
-        
-        return {
-            "points": points,
-            "alt": alt,
-            "phrase": phrase
-        }
-    except Exception as e:
-        # 如果解析过程中出现任何错误，打印错误信息并返回None
-        print(f"[-] XML解析失败: {e}")
-        return None
 
 # --- 可视化函数 ---
 
@@ -176,57 +140,63 @@ def plot_bounding_boxes(im: Image.Image, json_str: str, input_width: int, input_
     else:
         im.show()
 
-def plot_points(im: Image.Image, xml_str: str, input_width: int, input_height: int):
+# --- 可视化点函数 ---
+def draw_click_on_image(image_path, normalized_coords, input_width: int, input_height: int, output_path):
     """
-    在图像上绘制坐标点和描述。
-    该函数会解析XML字符串，将归一化的坐标转换为绝对坐标，并用不同颜色标记。
+    在指定图片上绘制一个模拟点击的点，并保存结果。
 
     Args:
-        im (Image.Image): Pillow图像对象。
-        xml_str (str): 包含坐标点信息的XML格式字符串。
-        input_width (int): 模型处理图像时所见的宽度。
-        input_height (int): 模型处理图像时所见的高度。
+        image_path (str): 原始图片的路径。
+        normalized_coords (tuple): (x, y) 格式的归一化坐标 (范围 0-1000)。
+        output_path (str): 保存绘制后图片的路径。
     """
-    original_width, original_height = im.size
-    draw = ImageDraw.Draw(im)
-    font = ImageFont.load_default()
-    
-    # 步骤1: 清理XML字符串，移除Markdown代码块标记
-    clean_xml_str = xml_str.replace('```xml', '').replace('```', '').strip()
-    
-    # 步骤2: 解析XML数据
-    data = decode_xml_points(clean_xml_str)
-    if data is None:
-        # 如果解析失败，直接显示原图
-        print("[-] XML数据解析失败，无法绘制点。")
-        im.show()
+    try:
+        image = Image.open(image_path).convert('RGBA')
+    except FileNotFoundError:
+        print(f"[错误] 找不到图片: {image_path}")
         return
 
-    points = data.get('points', [])
-    description = data.get('phrase', '')
+    original_width, original_height = image.size
+    
+    # 1. 坐标转换：将归一化坐标 (0-1000) 转换为绝对像素坐标
+    norm_x, norm_y = normalized_coords
+    abs_x = norm_x / input_width * original_width
+    abs_y = norm_y / input_height * original_height
+    
+    point = (abs_x, abs_y)
+    color = (255, 0, 0, 128) # 红色，半透明 (RGBA)
 
-    # 步骤3: 遍历每个点并绘制
-    for i, point in enumerate(points):
-        # 循环选择颜色
-        color = _COLORS[i % len(_COLORS)]
-        
-        # 步骤4: 坐标转换
-        # point[0]是x, point[1]是y，均为字符串形式的归一化坐标
-        x_norm, y_norm = int(point[0]), int(point[1])
-        abs_x = int(x_norm / input_width * original_width)
-        abs_y = int(y_norm / input_height * original_height)
-        
-        # 步骤5: 绘制点（一个小的实心圆）和描述文本
-        radius = 5  # 增大半径使其更明显
-        draw.ellipse(
-            [(abs_x - radius, abs_y - radius), (abs_x + radius, abs_y + radius)], 
-            fill=color
-        )
-        if description:
-            draw.text((abs_x + 8, abs_y - 6), f"({i+1}) {description}", fill=color, font=font)
+    # 2. 创建一个透明的叠加层用于绘制，避免直接修改原图
+    overlay = Image.new('RGBA', image.size, (255, 255, 255, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
 
-    # 步骤6: 显示结果
-    im.show()
+    # 3. 绘制效果 (借鉴官方Cookbook)
+    # 绘制一个较大的半透明圆圈表示点击区域
+    radius = min(image.size) * 0.02 # 调整半径大小，使其更适合UI元素
+    overlay_draw.ellipse(
+        [(point[0] - radius, point[1] - radius), (point[0] + radius, point[1] + radius)],
+        fill=color
+    )
+    
+    # 绘制一个小的实心点表示精确的点击中心
+    center_radius = radius * 0.2
+    overlay_draw.ellipse(
+        [(point[0] - center_radius, point[1] - center_radius), 
+         (point[0] + center_radius, point[1] + center_radius)],
+        fill=(0, 255, 0, 255) # 绿色实心点
+    )
+
+    # 4. 合并原图和叠加层
+    combined = Image.alpha_composite(image, overlay)
+    
+    # 5. 保存为RGB格式的图片
+    rgb_image = combined.convert('RGB')
+    
+    # 确保输出目录存在
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    rgb_image.save(output_path)
+    
+    print(f"🖼️  可视化结果已保存至: {output_path}")
 
 
 # --- 模型推理函数 ---
