@@ -44,12 +44,10 @@ def get_click_coordinates(model, processor, image_path, instruction):
         return ((click_x, click_y), (input_height, input_width))
     return None
 
-def run_calculator_task():
+def run_calculator_task(model, processor):
     """
     主Agent循环，执行计算器任务，并对每一步进行可视化。
     """
-    print("--- 启动桌面智能体，任务：使用计算器计算 123 + 456 ---")
-    model, processor = load_model_and_processor()
     output_dir = "output/calculator_task" # 为本次任务创建一个专门的输出文件夹
 
     # 1. 定义任务分解
@@ -100,6 +98,19 @@ def run_calculator_task():
 
     print("\n--- 任务流程模拟完成 ---")
 
+def main():
+    """
+    程序主入口，执行计算器自动化任务。
+    """
+    print("--- 启动桌面智能体，任务：使用计算器计算 123 + 456 ---")
+    
+    # 步骤1: 加载模型 (采用单例模式，高效)
+    model, processor = load_model_and_processor()
+
+    # 步骤2: 定义任务并执行
+    run_calculator_task(model, processor)
+
+    print("\n--- 所有任务流程已成功模拟 ---")
 
 if __name__ == '__main__':
-    run_calculator_task()
+    main()
