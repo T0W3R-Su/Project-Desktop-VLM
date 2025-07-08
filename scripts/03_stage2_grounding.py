@@ -27,7 +27,7 @@ def run_visual_grounding(image_path, user_instruction, output_filename):
 User instruction: "{instruction}"
 Please provide a JSON list containing the bounding box for the requested element. The format should be:
 [
-  {{"bbox_2d": [y1, x1, y2, x2], "label": "your_label"}}
+  {{"bbox_2d": [x1, y1, x2, y2], "label": "your_label"}}
 ]
 The coordinates must be normalized between 0 and 1000.
 """
