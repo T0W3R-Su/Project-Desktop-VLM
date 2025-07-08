@@ -1,7 +1,6 @@
 """
 本脚本演示了如何使用 Transformers 和 ModelScope 加载和运行
-Qwen/Qwen2.5-VL-3B-Instruct-AWQ 模型。
-AWQ (Activation-aware Weight Quantization) 是一种4-bit量化技术，
+unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit
 旨在保持较高模型性能的同时，显著减少显存占用。
 
 脚本主要包含以下部分：
@@ -20,7 +19,6 @@ from modelscope import snapshot_download
 # -- 2. 下载并加载模型与处理器 --
 
 # 从ModelScope社区下载模型文件到本地
-# 'Qwen/Qwen2.5-VL-3B-Instruct-AWQ' 是一个经过AWQ量化的版本，显存占用更低
 print("正在从 ModelScope 下载模型...")
 model_dir = snapshot_download('unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit')
 print(f"模型已下载至: {model_dir}")
