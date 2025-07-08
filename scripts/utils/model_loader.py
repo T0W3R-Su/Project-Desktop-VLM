@@ -50,7 +50,7 @@ def load_model_and_processor():
         model_dir,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        attn_implementation="flash_attention_2",
+        # attn_implementation="flash_attention_2",
         trust_remote_code=True
     )
     print("模型加载完成。")

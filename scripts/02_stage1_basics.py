@@ -29,7 +29,7 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
     model_dir,
     torch_dtype=torch.bfloat16,             # 使用bfloat16以优化性能和显存，这是现代GPU的推荐做法
     device_map="auto",                      # 自动将模型分片加载到可用设备上（如GPU），实现无缝多卡支持
-    attn_implementation="flash_attention_2",# [性能优化] 使用 Flash Attention 2 加速计算，节省显存，强烈推荐
+    # attn_implementation="flash_attention_2",# [性能优化] 使用 Flash Attention 2 加速计算，节省显存，强烈推荐
     trust_remote_code=True                  # 必须设置为True，因为模型定义在远程代码中
 )
 
