@@ -41,7 +41,7 @@ def load_model_and_processor():
     # --- 下载模型 ---
     print(f"正在从 ModelScope 下载模型: {MODEL_ID}...")
     # 使用 atexit 确保在脚本退出时能看到下载进度条的完整输出
-    model_dir = snapshot_download(MODEL_ID, revision='main')
+    model_dir = snapshot_download(MODEL_ID)
     print(f"模型已下载至: {model_dir}")
 
     # --- 加载模型 ---
