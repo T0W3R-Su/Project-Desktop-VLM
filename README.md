@@ -144,13 +144,14 @@ Python scripts/04_stage3_workflow.py
 ## 📊 示例结果
 
 #### 阶段二：UI 元素定位
-![output/grounding_login_button.png]
+
+<img src="output/grounding_login_button.png" width="700" />
 
 *图 1：成功定位登录页面上的“登录”按钮。指令：“定位登录按钮”。*
 
 #### 阶段三：自动化流程中的一步
 
-![output/calculator_task/step_04_action_on_calc_04_after_123.png]
+<img src="output/calculator_task/step_04_action_on_calc_04_after_123.png" width="300" />
 
 *图 2：在计算器任务的第 4 步，智能体根据指令“点击加号按钮 '+'”，成功定位并生成了点击操作。*
 
