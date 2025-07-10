@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-selfcheck.json
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output files - 避免上传大量生成图片
+# 你可以选择只上传几个代表性的结果，而不是全部
+# 如果 output 文件夹就是要展示的，可以注释掉下面这行
+# output/
+
+# ModelScope 和 Hugging Face 默认的缓存目录不在项目内，
+# 但以防万一，加上这条规则。
+.cache/
+*.pt
+*.pth
+*.safetensors
+*.bin
+
+# Windows specific
+Thumbs.db
